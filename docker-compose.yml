@@ -5,14 +5,18 @@ services:
       - mysql
     image: wordpress
     ports:
-      - 8000:80
+      - ${WP_PORT}:80
+      - 9003:9003
     environment:
       WORDPRESS_DB_HOST: mysql:3306
       WORDPRESS_DB_NAME: '${MYSQL_DATABASE}'
       WORDPRESS_DB_USER: '${MYSQL_USER}'
       WORDPRESS_DB_PASSWORD: '${MYSQL_PASSWORD}'
+      XDEBUG_MODE: debug
+      XDEBUG_CONFIG: discover_client_host=On
     volumes:
       - tsml_wproot:/var/www/html
+      - ./12-step-meeting-list:/var/www/html/wp-content/plugins/12-step-meeting-list
 
   mysql:
     container_name: tsml-wp-mysql
@@ -28,7 +32,6 @@ services:
     volumes:
       - tsml_mysql:/var/lib/mysql
 
-  # from: https://stackoverflow.com/questions/50999848/how-to-run-wp-cli-in-docker-compose-yml
   wpcli:
     container_name: tsml-wp-cli
     depends_on:
@@ -36,7 +39,6 @@ services:
       - mysql
     image: wordpress:cli
     user: '33'
-    #user: 1000:1000
     volumes:
       - tsml_wproot:/var/www/html
     environment:
@@ -48,8 +50,15 @@ services:
     command: >
       /bin/sh -c '
       echo "Waiting for MySQL to be ready...";
-      sleep 10;
-      wp core install --path=/var/www/html --url=http://localhost:8000 --title="${WP_BLOG_NAME}" --admin_user=${WP_ADMIN_USER} --admin_password=${WP_ADMIN_PASSWORD} --admin_email=${WP_ADMIN_EMAIL}
+      sleep 5;
+      wp core install --path=/var/www/html --url=http://${WP_HOST}:${WP_PORT} --title="${WP_BLOG_NAME}" --admin_user=${WP_ADMIN_USER} --admin_password=${WP_ADMIN_PASSWORD} --admin_email=${WP_ADMIN_EMAIL};
+      wp plugin activate 12-step-meeting-list --network --path=/var/www/html;
+      wp option update blog_public 0 --path=/var/www/html;
+      wp option update siteurl http://${WP_HOST}:${WP_PORT} --path=/var/www/html;
+      wp option update home http://${WP_HOST}:${WP_PORT} --path=/var/www/html;
+      wp rewrite structure '/%postname%/' --path=/var/www/html;
+      wp rewrite flush --path=/var/www/html;
+      wp cache flush --path=/var/www/html;
       '
 
 volumes:

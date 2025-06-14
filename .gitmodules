@@ -1,0 +1,3 @@
+[submodule "12-step-meeting-list"]
+	path = 12-step-meeting-list
+	url = git@github.com:code4recovery/12-step-meeting-list.git
