@@ -1,0 +1,57 @@
+services:
+  wordpress:
+    container_name: tsml-wp
+    depends_on:
+      - mysql
+    image: wordpress
+    ports:
+      - 8000:80
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_NAME: '${MYSQL_DATABASE}'
+      WORDPRESS_DB_USER: '${MYSQL_USER}'
+      WORDPRESS_DB_PASSWORD: '${MYSQL_PASSWORD}'
+    volumes:
+      - tsml_wproot:/var/www/html
+
+  mysql:
+    container_name: tsml-wp-mysql
+    image: mysql:latest
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_USER: '${MYSQL_USER}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+    volumes:
+      - tsml_mysql:/var/lib/mysql
+
+  # from: https://stackoverflow.com/questions/50999848/how-to-run-wp-cli-in-docker-compose-yml
+  wpcli:
+    container_name: tsml-wp-cli
+    depends_on:
+      - wordpress
+      - mysql
+    image: wordpress:cli
+    user: '33'
+    #user: 1000:1000
+    volumes:
+      - tsml_wproot:/var/www/html
+    environment:
+      WP_CLI_CACHE_DIR: ${WP_CLI_CACHE_DIR}
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+    command: >
+      /bin/sh -c '
+      echo "Waiting for MySQL to be ready...";
+      sleep 10;
+      wp core install --path=/var/www/html --url=http://localhost:8000 --title="${WP_BLOG_NAME}" --admin_user=${WP_ADMIN_USER} --admin_password=${WP_ADMIN_PASSWORD} --admin_email=${WP_ADMIN_EMAIL}
+      '
+
+volumes:
+  tsml_wproot:
+  tsml_mysql:
