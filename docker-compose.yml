@@ -1,15 +1,14 @@
 services:
-  wordpress:
-    container_name: tsml-wp
+  tsmlwp:
     depends_on:
-      - mysql
+      - tsmldb
     build:
       dockerfile: ./dockerfile
       context: .
     ports:
       - ${WP_PORT}:80
     environment:
-      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_HOST: tsmldb:3306
       WORDPRESS_DB_NAME: '${MYSQL_DATABASE}'
       WORDPRESS_DB_USER: '${MYSQL_USER}'
       WORDPRESS_DB_PASSWORD: '${MYSQL_PASSWORD}'
@@ -17,8 +16,7 @@ services:
     volumes:
       - tsml_wproot:/var/www/html
       - ./12-step-meeting-list:/var/www/html/wp-content/plugins/12-step-meeting-list
-  mysql:
-    container_name: tsml-wp-mysql
+  tsmldb:
     image: mysql:latest
     restart: always
     ports:
@@ -32,17 +30,16 @@ services:
       - tsml_mysql:/var/lib/mysql
 
   wpcli:
-    container_name: tsml-wp-cli
     depends_on:
-      - wordpress
-      - mysql
+      - tsmlwp
+      - tsmldb
     image: wordpress:cli
     user: '33'
     volumes:
       - tsml_wproot:/var/www/html
     environment:
       WP_CLI_CACHE_DIR: ${WP_CLI_CACHE_DIR}
-      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_HOST: tsmldb:3306
       WORDPRESS_DB_USER: ${MYSQL_USER}
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
