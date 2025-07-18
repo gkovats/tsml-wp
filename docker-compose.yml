@@ -14,8 +14,10 @@ services:
       WORDPRESS_DB_PASSWORD: '${MYSQL_PASSWORD}'
       XDEBUG_MODE: debug
     volumes:
-      - tsml_wproot:/var/www/html
-      - ./12-step-meeting-list:/var/www/html/wp-content/plugins/12-step-meeting-list
+      - ./wproot/:/var/www/html
+      - ./files:/var/www/html/files
+      - ./plugins/12-step-meeting-list:/var/www/html/wp-content/plugins/12-step-meeting-list
+      - ./plugins/tsml-test:/var/www/html/wp-content/plugins/tsml-test
   tsmldb:
     image: mysql:latest
     restart: always
@@ -36,7 +38,7 @@ services:
     image: wordpress:cli
     user: '33'
     volumes:
-      - tsml_wproot:/var/www/html
+      - ./wproot/:/var/www/html
     environment:
       WP_CLI_CACHE_DIR: ${WP_CLI_CACHE_DIR}
       WORDPRESS_DB_HOST: tsmldb:3306
@@ -53,11 +55,10 @@ services:
       wp option update blog_public 0 --path=/var/www/html;
       wp option update siteurl http://${WP_HOST}:${WP_PORT} --path=/var/www/html;
       wp option update home http://${WP_HOST}:${WP_PORT} --path=/var/www/html;
-      wp rewrite structure '/%postname%/' --path=/var/www/html;
+      wp rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/html;
       wp rewrite flush --path=/var/www/html;
       wp cache flush --path=/var/www/html;
       '
 
 volumes:
-  tsml_wproot:
   tsml_mysql:
