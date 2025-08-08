@@ -1,3 +1,6 @@
 [submodule "plugins/12-step-meeting-list"]
 	path = plugins/12-step-meeting-list
 	url = git@github.com:code4recovery/12-step-meeting-list.git
+[submodule "plugins/12-Step-Meeting-List-Xtras"]
+	path = plugins/12-Step-Meeting-List-Xtras
+	url = git@github.com:code4recovery/12-Step-Meeting-List-Xtras.git
