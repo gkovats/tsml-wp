@@ -18,6 +18,8 @@ services:
       - ./files:/var/www/html/files
       - ./plugins/12-step-meeting-list:/var/www/html/wp-content/plugins/12-step-meeting-list
       - ./plugins/tsml-test:/var/www/html/wp-content/plugins/tsml-test
+    networks:
+      - tsmlapp
   tsmldb:
     image: mysql:latest
     restart: always
@@ -30,6 +32,8 @@ services:
       MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
     volumes:
       - tsml_mysql:/var/lib/mysql
+    networks:
+      - tsmlapp
 
   wpcli:
     depends_on:
@@ -59,6 +63,9 @@ services:
       wp rewrite flush --path=/var/www/html;
       wp cache flush --path=/var/www/html;
       '
-
 volumes:
   tsml_mysql:
+
+networks:
+  tsmlapp:
+    driver: bridge
